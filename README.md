@@ -16,8 +16,15 @@ Possible Output values:
   1. Estimated Quote rate (AUD)
 
 ---
-Part 1: Configuration
+Part 2: Configuration
 ---------------------
 Same application, where values for each quote calculation parameters are configured.
 
 path : /import-quote/v1/configure
+
+
+How to Run
+----------
+Just fork and build the war. Run the war with the below command.
+
+<code> java -jar <<path_of_the_built_war>> </code>
