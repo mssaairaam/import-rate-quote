@@ -1,4 +1,4 @@
-package com.tsl.freight.importratequote.domain;
+package com.fms.freight.importratequote.domain;
 
 import java.math.BigDecimal;
 

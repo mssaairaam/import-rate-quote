@@ -1,17 +1,21 @@
-package com.tsl.freight.importratequote.quotecalc;
-
-import javax.validation.Valid;
-
-import org.springframework.stereotype.Service;
-
-import com.tsl.freight.importratequote.domain.QuoteCalculatorInput;
-import com.tsl.freight.importratequote.domain.QuoteCalculatorOutput;
-import static com.tsl.freight.importratequote.util.Constants.*;
+package com.fms.freight.importratequote.quotecalc;
 
 import java.math.BigDecimal;
 
+import javax.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.fms.freight.importratequote.domain.QuoteCalculatorInput;
+import com.fms.freight.importratequote.domain.QuoteCalculatorOutput;
+import com.fms.freight.importratequote.domain.QuoteVariables;
+
 @Service
 public class QuoteCalculatorService {
+
+	@Autowired
+	QuoteVariables quoteVariables;
 
 	public QuoteCalculatorOutput calculateQuoteCost(@Valid QuoteCalculatorInput quoteCalculatorInput) {
 		QuoteCalculatorOutput quotationCalculatorOutput = new QuoteCalculatorOutput();
@@ -32,9 +36,9 @@ public class QuoteCalculatorService {
 		BigDecimal importChargestotal = airlineImportTerminalFee
 				.add(aircargoBreakBulkFee)
 				.add(airportTransferFee) 
-				.add(airlineDocumentHandlingFeePerHawb)
-				.add(cargoAutomationFeePerSupplier)
-				.add(deliveryOrderFeePerHawb);
+				.add(quoteVariables.getAirlineDocumentHandlingFeePerHawb())
+				.add(quoteVariables.getCargoAutomationFeePerSupplier())
+				.add(quoteVariables.getDeliveryOrderFeePerHawb());
 		
 		// clearance and delivery charges
 		BigDecimal additionalEntryLinesTotalCost = caculateAdditionalEntryLinesCost();
@@ -42,9 +46,9 @@ public class QuoteCalculatorService {
 		BigDecimal deliveryCartageFuelSurcharge = calculateCartageFuelSurcharge(deliveryCartageFee);
 		BigDecimal otherChargesTotal = new BigDecimal("0.00");
 		BigDecimal tollFee = new BigDecimal("0.00");
-		BigDecimal clearanceAndDeliveryTotalCharges = customsClearanceFeePerHawb
+		BigDecimal clearanceAndDeliveryTotalCharges = quoteVariables.getCustomsClearanceFeePerHawb()
 				.add(additionalEntryLinesTotalCost) 
-				.add(customsCargoReportingFeePerHawb)
+				.add(quoteVariables.getCustomsCargoReportingFeePerHawb())
 				.add(deliveryCartageFee)
 				.add(deliveryCartageFuelSurcharge) 
 				.add(otherChargesTotal)
@@ -80,30 +84,31 @@ public class QuoteCalculatorService {
 	}*/
 
 	private BigDecimal calculateCartageFuelSurcharge(BigDecimal deliveryCartageFee) {
-		return deliveryCartageFee.multiply(deliveryCartageFeeFuelSurcharge);
+		return deliveryCartageFee.multiply(quoteVariables.getDeliveryCartageFeeFuelSurcharge());
 	}
 
 	private BigDecimal calculateDeliveryCartageFee(BigDecimal chargeableWeight) {
 		BigDecimal deliveryCartageFee = new BigDecimal("0.00");
-		BigDecimal calculatedDeliveryCartageFee = chargeableWeight.multiply(deliveryCartageFeePerKg).add(deliveryCartageFeeBasic);
-		if (calculatedDeliveryCartageFee.compareTo(deliveryCartageFeeMinimum) == 1) {
+		BigDecimal calculatedDeliveryCartageFee = chargeableWeight.multiply(quoteVariables.getDeliveryCartageFeePerKg())
+				.add(quoteVariables.getDeliveryCartageFeeBasic());
+		if (calculatedDeliveryCartageFee.compareTo(quoteVariables.getDeliveryCartageFeeMinimum()) == 1) {
 			deliveryCartageFee = calculatedDeliveryCartageFee;
 		} else {
-			deliveryCartageFee = deliveryCartageFeeMinimum;
+			deliveryCartageFee = quoteVariables.getDeliveryCartageFeeMinimum();
 		}
 		return deliveryCartageFee;
 	}
 
 	private BigDecimal caculateAdditionalEntryLinesCost() {
 		int noOfAdditionalEntryLines = 0;	
-		return costPerAdditionalEntryLine.multiply(new BigDecimal(noOfAdditionalEntryLines));
+		return quoteVariables.getCostPerAdditionalEntryLine().multiply(new BigDecimal(noOfAdditionalEntryLines));
 	}
 
 	private BigDecimal calculateAirportTransferFee(BigDecimal chargeableWeight) {
 		BigDecimal airportTransferFee = new BigDecimal("0.00");
-		BigDecimal calculatedAirportTransferFee = chargeableWeight.multiply(airportTransferFeePerKg);
-		if (calculatedAirportTransferFee.compareTo(airportTransferFeeMinimum) == -1) {
-			airportTransferFee = airportTransferFeeMinimum;
+		BigDecimal calculatedAirportTransferFee = chargeableWeight.multiply(quoteVariables.getAirportTransferFeePerKg());
+		if (calculatedAirportTransferFee.compareTo(quoteVariables.getAirportTransferFeeMinimum()) == -1) {
+			airportTransferFee = quoteVariables.getAirportTransferFeeMinimum();
 		} else {
 			airportTransferFee = calculatedAirportTransferFee;
 		}
@@ -112,9 +117,9 @@ public class QuoteCalculatorService {
 
 	private BigDecimal calculateAircargoBreakBulkFee(BigDecimal chargeableWeight) {
 		BigDecimal aircargoBreakBulkFee = new BigDecimal("0.00");
-		BigDecimal calculatedAircargoBreakBulkFee = chargeableWeight.multiply(aircargoBreakBulkFeePerKg);
-		if (calculatedAircargoBreakBulkFee.compareTo(aircargoBreakBulkFeeMinimum) == -1) {
-			aircargoBreakBulkFee = aircargoBreakBulkFeeMinimum;
+		BigDecimal calculatedAircargoBreakBulkFee = chargeableWeight.multiply(quoteVariables.getAircargoBreakBulkFeePerKg());
+		if (calculatedAircargoBreakBulkFee.compareTo(quoteVariables.getAircargoBreakBulkFeeMinimum()) == -1) {
+			aircargoBreakBulkFee = quoteVariables.getAircargoBreakBulkFeeMinimum();
 		} else {
 			aircargoBreakBulkFee = calculatedAircargoBreakBulkFee;
 		}
@@ -123,9 +128,9 @@ public class QuoteCalculatorService {
 
 	private BigDecimal calculateAirlineImportTerminalFee(BigDecimal chargeableWeight) {
 		BigDecimal airlineImportTerminalFee = new BigDecimal("0.00");
-		BigDecimal calculatedAirlineImportTerminalFee = chargeableWeight.multiply(airlineImportTerminalFeePerKg);
-		if (calculatedAirlineImportTerminalFee.compareTo(airlineImportTerminalFeeMininum) == -1) {
-			airlineImportTerminalFee = airlineImportTerminalFeeMininum;
+		BigDecimal calculatedAirlineImportTerminalFee = chargeableWeight.multiply(quoteVariables.getAirlineImportTerminalFeePerKg());
+		if (calculatedAirlineImportTerminalFee.compareTo(quoteVariables.getAirlineImportTerminalFeeMininum()) == -1) {
+			airlineImportTerminalFee = quoteVariables.getAirlineImportTerminalFeeMininum();
 		} else {
 			airlineImportTerminalFee = calculatedAirlineImportTerminalFee;
 		}

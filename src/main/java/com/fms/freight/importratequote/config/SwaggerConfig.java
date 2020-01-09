@@ -1,4 +1,4 @@
-package com.tsl.freight.importratequote.config;
+package com.fms.freight.importratequote.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -18,7 +18,7 @@ public class SwaggerConfig {
 	public Docket api() { 
 		return new Docket(DocumentationType.SWAGGER_2)
 				.select()
-				.apis(RequestHandlerSelectors.basePackage("com.tsl.freight.importratequote.quotecalc"))
+				.apis(RequestHandlerSelectors.basePackage("com.fms.freight.importratequote.quotecalc"))
 				.paths(PathSelectors.any())
 				.build()
 				.apiInfo(apiInfoMetaData());
